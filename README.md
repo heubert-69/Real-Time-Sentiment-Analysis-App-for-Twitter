@@ -61,4 +61,3 @@ CREATE TABLE twitter_sentiment (
 ## Notes
 - Python microservice uses Hugging Face and Torch
 - R app communicates with the microservice via HTTP POST
-- Consider using ONNX runtime for faster inference if scaling
