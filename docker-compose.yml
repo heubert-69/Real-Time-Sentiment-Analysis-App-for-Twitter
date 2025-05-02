@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    volumes:
+      - ~/.config/rtweet:/root/.config/rtweet
+    ports:
+      - "3838:3838"
+    depends_on:
+      - db
+      - inference
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: sentiment_db
+
+  inference:
+    image: python:3.9-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: python hf_infer.py
+    ports:
+      - "5000:5000"
+    environment:
+      TRANSFORMERS_CACHE: /app/cache
+    restart: always
+    depends_on:
+      - db
+    entrypoint: ["sh", "-c", "pip install flask transformers torch && python hf_infer.py"]
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sentiment_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  - postgres_data:/var/lib/postgresql/data
+  - ./init.sql:/docker-entrypoint-initdb.d/init.sql
